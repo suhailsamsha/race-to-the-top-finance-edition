@@ -1,0 +1,227 @@
+{
+  "entities": {
+    "CompetitionConfig": {
+      "title": "CompetitionConfig",
+      "description": "Global active competition configuration and current active round.",
+      "type": "object",
+      "properties": {
+        "activeRoundId": {
+          "type": "integer",
+          "description": "Current active round number from 1 to 8."
+        },
+        "campaignGoal": {
+          "type": "integer",
+          "description": "Target dollar orbit goal for the race."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last update."
+        },
+        "updatedBy": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "UID of the admin who updated the competition state."
+        }
+      },
+      "required": ["activeRoundId", "campaignGoal", "updatedAt", "updatedBy"]
+    },
+    "FinanceTeam": {
+      "title": "FinanceTeam",
+      "description": "A corporate finance squadron competing in the 8-round race.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Unique team identifier."
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Squadron display name."
+        },
+        "leader": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "description": "Commander / Team Leader name."
+        },
+        "color": {
+          "type": "string",
+          "maxLength": 16,
+          "pattern": "^#[0-9a-fA-F]{6}$",
+          "description": "Primary hull hex color."
+        },
+        "secondaryColor": {
+          "type": "string",
+          "maxLength": 16,
+          "pattern": "^#[0-9a-fA-F]{6}$",
+          "description": "Secondary wing hex color."
+        },
+        "score": {
+          "type": "integer",
+          "description": "Current accumulated dollar balance."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of last team or score update."
+        }
+      },
+      "required": ["id", "name", "leader", "color", "secondaryColor", "score", "updatedAt"]
+    },
+    "RoundAward": {
+      "title": "RoundAward",
+      "description": "Persisted ledger entry of points allotted to a squadron for a specific round or adjustment.",
+      "type": "object",
+      "properties": {
+        "roundId": {
+          "type": "integer",
+          "description": "Competition round number (1-8)."
+        },
+        "roundName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "description": "Display name of the round."
+        },
+        "teamId": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "ID of the receiving squadron."
+        },
+        "teamName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "description": "Name of the receiving squadron at award time."
+        },
+        "place": {
+          "type": "string",
+          "enum": ["1st", "2nd", "adjust"],
+          "description": "Placement or manual adjustment indicator."
+        },
+        "amount": {
+          "type": "integer",
+          "description": "Dollar amount allotted or adjusted."
+        },
+        "awardedBy": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "UID of the admin who allotted the points."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when the award was recorded."
+        }
+      },
+      "required": ["roundId", "roundName", "teamId", "teamName", "place", "amount", "awardedBy", "createdAt"]
+    },
+    "UserPublicProfile": {
+      "title": "UserPublicProfile",
+      "description": "Non-PII public profile for an authenticated participant or admin.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Firebase Auth UID."
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80,
+          "description": "User display name."
+        },
+        "role": {
+          "type": "string",
+          "enum": ["user", "admin"],
+          "description": "Assigned role (admin only assignable by bootstrapped/existing admin)."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Account creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last login update timestamp."
+        }
+      },
+      "required": ["uid", "displayName", "role", "createdAt", "updatedAt"]
+    },
+    "UserPrivateInfo": {
+      "title": "UserPrivateInfo",
+      "description": "Isolated PII storage for user email.",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email",
+          "maxLength": 160,
+          "description": "Verified user email address."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp."
+        }
+      },
+      "required": ["email", "updatedAt"]
+    },
+    "AdminRecord": {
+      "title": "AdminRecord",
+      "description": "Trusted admin registry entry keyed by UID.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$",
+          "description": "Admin Firebase Auth UID."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when admin access was granted."
+        }
+      },
+      "required": ["uid", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/competition/{configId}": {
+      "schema": { "$ref": "#/entities/CompetitionConfig" },
+      "description": "Global competition configuration and active round state (doc ID: main)."
+    },
+    "/teams/{teamId}": {
+      "schema": { "$ref": "#/entities/FinanceTeam" },
+      "description": "Five corporate finance squadrons and their persisted scores."
+    },
+    "/roundAwards/{awardId}": {
+      "schema": { "$ref": "#/entities/RoundAward" },
+      "description": "Persistent round-by-round point allotment ledger."
+    },
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserPublicProfile" },
+      "description": "Authenticated user public profile without PII."
+    },
+    "/users/{userId}/private/{docId}": {
+      "schema": { "$ref": "#/entities/UserPrivateInfo" },
+      "description": "Isolated private PII document for the user."
+    },
+    "/admins/{userId}": {
+      "schema": { "$ref": "#/entities/AdminRecord" },
+      "description": "Trusted admin registry."
+    }
+  }
+}

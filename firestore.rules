@@ -1,0 +1,216 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Default-Deny Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Core Primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerifiedUser() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isBootstrappedAdmin() {
+      return isVerifiedUser() && request.auth.token.email.lower() == '22is-suhail0077@yit.edu.in';
+    }
+
+    function isAdmin() {
+      return isBootstrappedAdmin() || (
+        isVerifiedUser() && exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isOwner(userId) {
+      return isVerifiedUser() && request.auth.uid == userId;
+    }
+
+    // Validation Blueprints
+    function isValidCompetitionConfig(data) {
+      return data.keys().hasAll(['activeRoundId', 'campaignGoal', 'updatedAt', 'updatedBy'])
+        && data.keys().hasOnly(['activeRoundId', 'campaignGoal', 'updatedAt', 'updatedBy'])
+        && data.activeRoundId is int
+        && data.activeRoundId >= 1
+        && data.activeRoundId <= 8
+        && data.campaignGoal is int
+        && data.campaignGoal >= 100
+        && data.campaignGoal <= 10000000
+        && data.updatedAt == request.time
+        && data.updatedBy is string
+        && isValidId(data.updatedBy)
+        && data.updatedBy == request.auth.uid;
+    }
+
+    function isValidTeam(data) {
+      return data.keys().hasAll(['id', 'name', 'leader', 'color', 'secondaryColor', 'score', 'updatedAt'])
+        && data.keys().hasOnly(['id', 'name', 'leader', 'color', 'secondaryColor', 'score', 'updatedAt'])
+        && data.id is string
+        && isValidId(data.id)
+        && data.name is string
+        && data.name.size() >= 1
+        && data.name.size() <= 100
+        && data.leader is string
+        && data.leader.size() >= 1
+        && data.leader.size() <= 80
+        && data.color is string
+        && data.color.size() == 7
+        && data.color.matches('^#[0-9a-fA-F]{6}$')
+        && data.secondaryColor is string
+        && data.secondaryColor.size() == 7
+        && data.secondaryColor.matches('^#[0-9a-fA-F]{6}$')
+        && data.score is int
+        && data.score >= 0
+        && data.score <= 10000000
+        && data.updatedAt == request.time;
+    }
+
+    function isValidRoundAward(data) {
+      return data.keys().hasAll(['roundId', 'roundName', 'teamId', 'teamName', 'place', 'amount', 'awardedBy', 'createdAt'])
+        && data.keys().hasOnly(['roundId', 'roundName', 'teamId', 'teamName', 'place', 'amount', 'awardedBy', 'createdAt'])
+        && data.roundId is int
+        && data.roundId >= 1
+        && data.roundId <= 8
+        && data.roundName is string
+        && data.roundName.size() >= 1
+        && data.roundName.size() <= 120
+        && data.teamId is string
+        && isValidId(data.teamId)
+        && data.teamName is string
+        && data.teamName.size() >= 1
+        && data.teamName.size() <= 100
+        && data.place is string
+        && data.place in ['1st', '2nd', 'adjust']
+        && data.amount is int
+        && data.amount >= -1000000
+        && data.amount <= 1000000
+        && data.awardedBy is string
+        && isValidId(data.awardedBy)
+        && data.awardedBy == request.auth.uid
+        && data.createdAt == request.time;
+    }
+
+    function isValidUserPublicProfile(data) {
+      return data.keys().hasAll(['uid', 'displayName', 'role', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['uid', 'displayName', 'role', 'createdAt', 'updatedAt'])
+        && data.uid is string
+        && isValidId(data.uid)
+        && data.displayName is string
+        && data.displayName.size() >= 1
+        && data.displayName.size() <= 80
+        && data.role is string
+        && data.role in ['user', 'admin']
+        && data.updatedAt == request.time;
+    }
+
+    function isValidUserPrivateInfo(data) {
+      return data.keys().hasAll(['email', 'updatedAt'])
+        && data.keys().hasOnly(['email', 'updatedAt'])
+        && data.email is string
+        && data.email.size() >= 3
+        && data.email.size() <= 160
+        && data.updatedAt == request.time;
+    }
+
+    function isValidAdminRecord(data) {
+      return data.keys().hasAll(['uid', 'createdAt'])
+        && data.keys().hasOnly(['uid', 'createdAt'])
+        && data.uid is string
+        && isValidId(data.uid)
+        && data.createdAt == request.time;
+    }
+
+    // Competition configuration (doc: main)
+    match /competition/{configId} {
+      allow get: if isValidId(configId) && isVerifiedUser();
+      allow list: if isVerifiedUser() && resource.data.campaignGoal >= 0;
+      allow create: if isValidId(configId) && isAdmin() && isValidCompetitionConfig(incoming());
+      allow update: if isValidId(configId) && isAdmin() && isValidCompetitionConfig(incoming())
+        && incoming().diff(existing()).affectedKeys().hasOnly(['activeRoundId', 'campaignGoal', 'updatedAt', 'updatedBy']);
+      allow delete: if isValidId(configId) && isAdmin();
+    }
+
+    // Finance squadrons & live scores
+    match /teams/{teamId} {
+      allow get: if isValidId(teamId) && isVerifiedUser();
+      allow list: if isVerifiedUser() && resource.data.score >= 0;
+      allow create: if isValidId(teamId) && isAdmin() && isValidTeam(incoming()) && incoming().id == teamId;
+      allow update: if isValidId(teamId) && isAdmin() && isValidTeam(incoming())
+        && incoming().id == existing().id
+        && incoming().diff(existing()).affectedKeys().hasOnly(['name', 'leader', 'color', 'secondaryColor', 'score', 'updatedAt']);
+      allow delete: if isValidId(teamId) && isAdmin();
+    }
+
+    // Persistent round-by-round point awards ledger
+    match /roundAwards/{awardId} {
+      allow get: if isValidId(awardId) && isVerifiedUser();
+      allow list: if isVerifiedUser() && resource.data.roundId >= 1;
+      allow create: if isValidId(awardId) && isAdmin() && isValidRoundAward(incoming());
+      allow update: if isValidId(awardId) && isAdmin() && isValidRoundAward(incoming())
+        && incoming().awardedBy == existing().awardedBy
+        && incoming().createdAt == existing().createdAt
+        && incoming().diff(existing()).affectedKeys().hasOnly(['teamName']);
+      allow delete: if isValidId(awardId) && isAdmin();
+    }
+
+    // Authenticated user public profiles (zero PII)
+    match /users/{userId} {
+      allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
+      allow list: if isAdmin() && resource.data.uid is string;
+      allow create: if isValidId(userId) && isOwner(userId)
+        && isValidUserPublicProfile(incoming())
+        && incoming().uid == userId
+        && incoming().createdAt == request.time
+        && (incoming().role == 'user' || isAdmin());
+      allow update: if isValidId(userId) && (isOwner(userId) || isAdmin())
+        && isValidUserPublicProfile(incoming())
+        && incoming().uid == existing().uid
+        && incoming().createdAt == existing().createdAt
+        && (
+          (isOwner(userId) && incoming().role == existing().role && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'updatedAt'])) ||
+          (isAdmin() && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'role', 'updatedAt']))
+        );
+      allow delete: if isValidId(userId) && isAdmin();
+
+      // Isolated private PII subcollection
+      match /private/{docId} {
+        allow get: if isValidId(userId) && isValidId(docId) && (isOwner(userId) || isAdmin());
+        allow list: if isValidId(userId) && (isOwner(userId) || isAdmin()) && resource.data.email is string;
+        allow create: if isValidId(userId) && isValidId(docId) && isOwner(userId) && isValidUserPrivateInfo(incoming());
+        allow update: if isValidId(userId) && isValidId(docId) && isOwner(userId) && isValidUserPrivateInfo(incoming())
+          && incoming().diff(existing()).affectedKeys().hasOnly(['email', 'updatedAt']);
+        allow delete: if isValidId(userId) && isValidId(docId) && isAdmin();
+      }
+    }
+
+    // Trusted Admin Registry
+    match /admins/{userId} {
+      allow get: if isValidId(userId) && (isOwner(userId) || isAdmin());
+      allow list: if isAdmin() && resource.data.uid is string;
+      allow create: if isValidId(userId) && isAdmin() && isValidAdminRecord(incoming()) && incoming().uid == userId;
+      allow update: if false;
+      allow delete: if isValidId(userId) && isAdmin();
+    }
+
+    // Connectivity health-check doc
+    match /test/{docId} {
+      allow get: if isValidId(docId) && docId == 'connection';
+    }
+  }
+}

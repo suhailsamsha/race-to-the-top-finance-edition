@@ -1,0 +1,6 @@
+{
+  "name": "Race to the Top - Finance Edition",
+  "description": "Official 8-round corporate finance competition tracker with real-time cosmos flight race arena, scorekeeper command console, team leader telemetry, and projector broadcast mode.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

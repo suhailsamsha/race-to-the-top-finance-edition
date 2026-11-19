@@ -1,0 +1,1781 @@
+<!DOCTYPE html>
+
+<html data-theme="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>Race to the Top - Finance Edition</title>
+<style>
+    :root {
+      --bg: #030712;
+      --bg-card: rgba(13, 20, 38, 0.92);
+      --bg-card-solid: #0f172a;
+      --border: rgba(255, 255, 255, 0.09);
+      --border-focus: #10b981;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --primary: #10b981;
+      --gold: #f59e0b;
+      --silver: #cbd5e1;
+      --cyan: #38bdf8;
+      --danger: #ef4444;
+      --shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.7);
+      --font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font);
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+      overflow-x: hidden;
+      position: relative;
+    }
+    #space-bg-canvas, #confetti-canvas {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;
+    }
+    #space-bg-canvas { z-index: 0; }
+    #confetti-canvas { z-index: 9998; }
+
+    .app-container {
+      max-width: 1340px; margin: 0 auto; width: 100%; display: flex; flex-direction: column; gap: 16px; position: relative; z-index: 1;
+    }
+    header {
+      display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px;
+      padding: 14px 20px; background: var(--bg-card); backdrop-filter: blur(16px);
+      border: 1px solid var(--border); border-radius: 18px; box-shadow: var(--shadow);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-icon { font-size: 28px; }
+    .brand-text h1 {
+      font-size: 1.25rem; font-weight: 800; background: linear-gradient(135deg, #34d399, #f59e0b, #38bdf8);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .brand-text span { font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 8px 14px; border-radius: 10px; font-size: 0.82rem; font-weight: 600;
+      border: 1px solid var(--border); background: var(--bg-card-solid); color: var(--text);
+      cursor: pointer; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); user-select: none;
+    }
+    .btn:hover { filter: brightness(1.15); transform: translateY(-1px); border-color: rgba(255,255,255,0.25); }
+    .btn:active { transform: translateY(0); }
+    .btn-primary { background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; box-shadow: 0 4px 12px rgba(16,185,129,0.35); }
+    .btn-gold { background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; font-weight: 800; border: none; }
+    .btn-danger { background: rgba(239, 68, 68, 0.18); border-color: rgba(239, 68, 68, 0.45); color: #fca5a5; }
+    .btn-danger:hover { background: rgba(239, 68, 68, 0.3); border-color: #ef4444; }
+    .btn-reset-header {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(185, 28, 28, 0.28));
+      border: 1px solid rgba(239, 68, 68, 0.55);
+      color: #fecaca;
+      box-shadow: 0 0 12px rgba(239, 68, 68, 0.2);
+      font-weight: 700;
+    }
+    .btn-reset-header:hover {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.35), rgba(220, 38, 38, 0.45));
+      border-color: #ef4444;
+      color: #fff;
+      box-shadow: 0 0 16px rgba(239, 68, 68, 0.4);
+    }
+    .btn-reset-success {
+      background: linear-gradient(135deg, #059669, #10b981) !important;
+      border-color: #34d399 !important;
+      color: #ffffff !important;
+      box-shadow: 0 0 16px rgba(16, 185, 129, 0.6) !important;
+    }
+    .btn-sound-active { background: linear-gradient(135deg, #059669, #0d9488); border-color: #34d399; color: #ecfdf5; box-shadow: 0 0 14px rgba(16,185,129,0.45); }
+    .btn-sm { padding: 5px 10px; font-size: 0.75rem; border-radius: 8px; }
+
+    .role-bar {
+      display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px;
+      padding: 10px 18px; background: linear-gradient(90deg, rgba(13,20,38,0.95), rgba(16,24,46,0.95));
+      border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 16px;
+    }
+    .role-tabs { display: inline-flex; background: rgba(0,0,0,0.45); padding: 4px; border-radius: 12px; gap: 4px; border: 1px solid var(--border); }
+    .role-tab {
+      padding: 6px 14px; border-radius: 8px; font-size: 0.8rem; font-weight: 700;
+      color: var(--text-muted); cursor: pointer; border: none; background: transparent; transition: all 0.2s;
+    }
+    .role-tab.active { background: linear-gradient(135deg, #10b981, #059669); color: #fff; box-shadow: 0 2px 10px rgba(16,185,129,0.4); }
+
+    /* Auto-save flash pill */
+    .save-indicator {
+      display: inline-flex; align-items: center; gap: 6px; font-size: 0.72rem; color: var(--text-dim);
+      padding: 3px 9px; border-radius: 999px; background: rgba(0,0,0,0.35); border: 1px solid var(--border);
+      transition: all 0.3s;
+    }
+    .save-indicator.flash {
+      color: #6ee7b7; border-color: #10b981; background: rgba(16, 185, 129, 0.2); box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+    }
+
+    /* Collapsible Sections & Controls */
+    .collapsible-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px; overflow: hidden;
+      animation: fadeIn 0.25s ease-out;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+    .card-header { padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-bottom: 1px solid var(--border); user-select: none; }
+    .card-header h2 { font-size: 0.95rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+    .card-body { padding: 18px; display: flex; flex-direction: column; gap: 16px; }
+
+    /* Admin Round Strip Buttons */
+    .round-control-container {
+      background: linear-gradient(145deg, rgba(17, 24, 39, 0.95), rgba(10, 15, 30, 0.98));
+      border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 16px; padding: 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 20px rgba(56, 189, 248, 0.05);
+    }
+    .round-strip {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 8px; margin-bottom: 16px;
+    }
+    .round-card-btn {
+      display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border); border-radius: 12px;
+      cursor: pointer; color: var(--text); text-align: left; transition: all 0.2s;
+    }
+    .round-card-btn:hover { background: rgba(56, 189, 248, 0.1); border-color: rgba(56, 189, 248, 0.5); transform: translateY(-2px); }
+    .round-card-btn.active {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(56, 189, 248, 0.2));
+      border-color: #38bdf8; box-shadow: 0 0 14px rgba(56, 189, 248, 0.25);
+    }
+    .round-card-btn.has-won {
+      border-color: rgba(245, 158, 11, 0.6);
+    }
+    .round-card-btn .r-num { font-size: 0.68rem; font-weight: 800; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.05em; }
+    .round-card-btn .r-title { font-size: 0.78rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+    .round-card-btn .r-points { font-size: 0.68rem; color: #34d399; font-weight: 700; }
+    .round-card-btn.case-study .r-points { color: #f59e0b; }
+
+    .round-workbench {
+      display: grid; grid-template-columns: 1fr; gap: 16px; padding: 16px;
+      background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 14px;
+    }
+    @media (min-width: 900px) { .round-workbench { grid-template-columns: 1.35fr 1fr; } }
+    .podium-selector-row {
+      display: grid; grid-template-columns: 100px 1fr auto; align-items: center; gap: 10px;
+      background: rgba(255, 255, 255, 0.03); padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 8px;
+    }
+    .podium-badge { font-size: 0.74rem; font-weight: 800; padding: 4px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; }
+    .podium-gold { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.4); }
+    .podium-silver { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.4); }
+    .prize-tag { font-weight: 800; font-size: 0.88rem; color: #34d399; min-width: 70px; text-align: right; }
+
+    .round-history-log {
+      max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px;
+    }
+    .history-entry {
+      display: flex; justify-content: space-between; align-items: center; padding: 7px 11px;
+      background: rgba(255, 255, 255, 0.02); border-radius: 8px; border-left: 3px solid #38bdf8; font-size: 0.75rem;
+    }
+    .history-entry.gold-win { border-left-color: #f59e0b; }
+    .history-entry.silver-win { border-left-color: #94a3b8; }
+
+    /* Tables */
+    .sk-table-container { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); background: rgba(0,0,0,0.3); }
+    .sk-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; min-width: 760px; }
+    .sk-table th { background: rgba(255,255,255,0.03); padding: 11px 14px; text-align: left; font-weight: 600; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+    .sk-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+
+    /* Arena & Flight Track */
+    .cosmos-flight-arena {
+      position: relative; background: radial-gradient(circle at 50% 10%, #11222e 0%, #091322 45%, #030712 95%);
+      border: 1px solid rgba(52, 211, 153, 0.25); border-radius: 24px; padding: 22px;
+      box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.8), inset 0 0 80px rgba(16, 185, 129, 0.08);
+      overflow: hidden; min-height: 560px; display: flex; flex-direction: column; gap: 14px;
+    }
+    .celestial-planet {
+      position: absolute; bottom: -160px; left: -80px; width: 440px; height: 440px; border-radius: 50%;
+      background: radial-gradient(circle at 45% 30%, #34d399 0%, #059669 35%, #0f172a 80%);
+      box-shadow: 0 -20px 80px rgba(16, 185, 129, 0.3); opacity: 0.45; pointer-events: none; z-index: 0;
+    }
+    .stargate-finish {
+      position: absolute; top: 20px; bottom: 20px; right: 28px; width: 6px; border-radius: 999px;
+      background: linear-gradient(180deg, #ec4899, #f59e0b 45%, #34d399);
+      box-shadow: 0 0 25px rgba(245, 158, 11, 0.8), 0 0 45px rgba(52, 211, 153, 0.6); z-index: 2;
+    }
+    .stargate-label {
+      position: absolute; right: 38px; top: 24px; font-size: 0.72rem; font-weight: 800; color: #f59e0b;
+      letter-spacing: 0.08em; text-transform: uppercase; background: rgba(0,0,0,0.6); padding: 3px 8px; border-radius: 6px;
+      border: 1px solid rgba(245,158,11,0.3); z-index: 3;
+    }
+
+    /* Floating Cash Vessels */
+    .flight-stage { position: relative; z-index: 5; width: 100%; min-height: 420px; flex-grow: 1; }
+    .space-vessel {
+      position: absolute; transform: translate3d(0, 0, 0); will-change: transform, left, top; z-index: 10;
+      transition: left 0.85s cubic-bezier(0.2, 0.9, 0.3, 1.1), top 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.1);
+      display: flex; align-items: center; cursor: pointer;
+    }
+    .cash-hull {
+      width: 48px; height: 38px; display: flex; align-items: center; justify-content: center; position: relative;
+      filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.95)); flex-shrink: 0;
+    }
+    .cash-hull::after {
+      content: ''; position: absolute; left: -10px; top: 50%; transform: translateY(-50%);
+      width: 14px; height: 10px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.9) 0%, rgba(56, 189, 248, 0) 80%);
+      animation: thrusterPulse 0.8s infinite alternate ease-in-out; pointer-events: none;
+    }
+    @keyframes thrusterPulse {
+      0% { opacity: 0.4; transform: translateY(-50%) scale(0.85); }
+      100% { opacity: 1; transform: translateY(-50%) scale(1.35); }
+    }
+
+    .vessel-hud-badge {
+      margin-left: 6px; background: rgba(15, 23, 42, 0.92); border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 6px 12px; border-radius: 14px; backdrop-filter: blur(12px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+      display: flex; align-items: center; gap: 8px; white-space: nowrap; transition: all 0.25s;
+    }
+    .space-vessel:hover .vessel-hud-badge {
+      transform: scale(1.03); border-color: rgba(255,255,255,0.4);
+    }
+    .space-vessel.lead-vessel .vessel-hud-badge {
+      border-color: rgba(245, 158, 11, 0.7); background: linear-gradient(135deg, rgba(245, 158, 11, 0.22), rgba(15, 23, 42, 0.95));
+      box-shadow: 0 0 22px rgba(245, 158, 11, 0.45);
+    }
+    .badge-rank-tag { font-size: 0.68rem; font-weight: 800; padding: 2px 7px; border-radius: 6px; background: rgba(255, 255, 255, 0.1); }
+    .lead-vessel .badge-rank-tag { background: #f59e0b; color: #000; }
+    .badge-name { font-size: 0.84rem; font-weight: 700; color: #fff; }
+    .badge-val { font-size: 1.05rem; font-weight: 900; color: #34d399; }
+
+    /* Dynamic Round Win Badges */
+    .vessel-wins-strip {
+      display: flex; align-items: center; gap: 5px; border-left: 1px solid rgba(255, 255, 255, 0.12);
+      padding-left: 8px; margin-left: 2px;
+    }
+    .r-win-pill {
+      font-size: 0.68rem; font-weight: 800; padding: 3px 8px; border-radius: 999px;
+      display: inline-flex; align-items: center; gap: 4px; letter-spacing: 0.02em;
+      transition: all 0.2s; white-space: nowrap; cursor: help;
+    }
+    .r-win-pill:hover { transform: scale(1.08); }
+    .r-win-gold {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.35), rgba(180, 83, 9, 0.45));
+      border: 1px solid #f59e0b; color: #fef08a; box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+    }
+    .r-win-silver {
+      background: linear-gradient(135deg, rgba(148, 163, 184, 0.25), rgba(71, 85, 105, 0.4));
+      border: 1px solid #cbd5e1; color: #f1f5f9; box-shadow: 0 0 8px rgba(203, 213, 225, 0.35);
+    }
+    @keyframes badgePop {
+      0% { transform: scale(0.3); opacity: 0; }
+      50% { transform: scale(1.35); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .badge-pop-animate {
+      animation: badgePop 0.55s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    #toast-msg {
+      position: fixed; bottom: 20px; right: 20px; background: #0f172a; color: #fff;
+      padding: 10px 18px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.4);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.7); font-size: 0.84rem; font-weight: 600;
+      z-index: 10000; transform: translateY(100px); opacity: 0; transition: all 0.3s; pointer-events: none;
+    }
+    #toast-msg.show { transform: translateY(0); opacity: 1; }
+
+    /* Admin Modal */
+    .admin-modal-backdrop {
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.82); backdrop-filter: blur(8px);
+      z-index: 9999; display: none; align-items: center; justify-content: center; padding: 16px;
+    }
+    .admin-modal-backdrop.open { display: flex; }
+    .admin-modal-panel {
+      background: #0f172a; border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 20px;
+      max-width: 840px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 22px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.85); display: flex; flex-direction: column; gap: 18px;
+    }
+
+    /* Dedicated Team Edit Modal */
+    .edit-modal-backdrop {
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px);
+      z-index: 10005; display: none; align-items: center; justify-content: center; padding: 16px;
+    }
+    .edit-modal-backdrop.open { display: flex; }
+    .edit-modal-panel {
+      background: #0b1120; border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 20px;
+      max-width: 520px; width: 100%; padding: 24px; box-shadow: 0 25px 60px rgba(0,0,0,0.9);
+      display: flex; flex-direction: column; gap: 18px; position: relative;
+    }
+
+    /* Ensure form text inputs can be selected and typed into freely */
+    input[type="text"], input[type="number"], select {
+      user-select: text !important;
+      -webkit-user-select: text !important;
+      pointer-events: auto !important;
+      cursor: text;
+    }
+    select { cursor: pointer; }
+
+    /* Projector Mode */
+    body.projector-active { padding: 10px; background: #020617; }
+    body.projector-active header,
+    body.projector-active .role-bar,
+    body.projector-active #registration-section,
+    body.projector-active #scorekeeper-section,
+    body.projector-active #audience-standings-section { display: none !important; }
+    body.projector-active .cosmos-flight-arena { min-height: calc(100vh - 20px); border: none; background: transparent; }
+    #projector-exit-btn {
+      position: fixed; top: 16px; right: 16px; z-index: 10001; display: none; background: rgba(0,0,0,0.85);
+      border: 1px solid rgba(255,255,255,0.4); color: #fff; padding: 7px 16px; border-radius: 10px; font-weight: 700; cursor: pointer;
+    }
+    body.projector-active #projector-exit-btn { display: block; }
+  </style>
+</head>
+<body>
+<canvas id="space-bg-canvas"></canvas>
+<canvas id="confetti-canvas"></canvas>
+<button id="projector-exit-btn" onclick="toggleProjector(false)">✕ Exit Projector</button>
+<div id="toast-msg">Cosmos live telemetry active</div>
+<!-- Dedicated Edit Squadron & Commander Modal -->
+<div class="edit-modal-backdrop" id="edit-team-modal" onclick="if(event.target===this) closeEditTeamModal()">
+<div class="edit-modal-panel">
+<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:12px;">
+<div style="display:flex; align-items:center; gap:10px;">
+<span style="font-size:1.4rem;">✏️</span>
+<div>
+<h2 style="font-size:1.15rem; font-weight:800; color:#fff;">Edit Squadron &amp; Commander</h2>
+<p style="font-size:0.75rem; color:var(--text-muted);">Change squadron title and commander name</p>
+</div>
+</div>
+<button class="btn btn-sm" onclick="closeEditTeamModal()" style="font-size:1rem; padding:4px 10px;" type="button">✕</button>
+</div>
+<form id="modal-edit-team-form" onsubmit="handleModalEditSubmit(event)" style="display:flex; flex-direction:column; gap:14px;">
+<input id="modal-edit-team-id" type="hidden"/>
+<div>
+<label for="modal-edit-team-name" style="font-size:0.78rem; font-weight:700; color:#38bdf8; display:block; margin-bottom:6px;">
+          Squadron Name
+        </label>
+<input id="modal-edit-team-name" required="" style="width:100%; padding:10px 14px; background:rgba(0,0,0,0.6); border:1px solid var(--border); border-radius:10px; color:#fff; font-size:0.9rem;" type="text"/>
+</div>
+<div>
+<label for="modal-edit-leader-name" style="font-size:0.78rem; font-weight:700; color:#34d399; display:block; margin-bottom:6px;">
+          Commander / Team Leader Name
+        </label>
+<input autocomplete="off" id="modal-edit-leader-name" required="" style="width:100%; padding:10px 14px; background:rgba(0,0,0,0.6); border:1px solid var(--border); border-radius:10px; color:#fff; font-size:0.9rem;" type="text"/>
+</div>
+<div style="display:flex; align-items:center; gap:12px;">
+<div style="flex:1;">
+<label for="modal-edit-team-color" style="font-size:0.78rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:6px;">
+            Hull Accent Color
+          </label>
+<input id="modal-edit-team-color" style="width:100%; height:40px; padding:2px; background:rgba(0,0,0,0.5); border:1px solid var(--border); border-radius:8px; cursor:pointer;" type="color"/>
+</div>
+<div style="flex:1;">
+<label style="font-size:0.78rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:6px;">
+            Current Balance
+          </label>
+<div id="modal-edit-balance-display" style="font-size:1.15rem; font-weight:900; color:#34d399; padding-top:6px;">$0</div>
+</div>
+</div>
+<div style="display:flex; gap:10px; justify-content:flex-end; margin-top:8px; border-top:1px solid var(--border); padding-top:14px;">
+<button class="btn" onclick="closeEditTeamModal()" style="padding:9px 18px;" type="button">Cancel</button>
+<button class="btn btn-primary" id="modal-edit-save-btn" style="padding:9px 22px;" type="submit">💾 Save Changes</button>
+</div>
+</form>
+</div>
+</div>
+<!-- Admin Modal / Drawer -->
+<div class="admin-modal-backdrop" id="admin-modal" onclick="if(event.target===this) toggleAdminModal(false)">
+<div class="admin-modal-panel">
+<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:12px;">
+<div style="display:flex; align-items:center; gap:10px;">
+<span style="font-size:1.4rem;">🔒</span>
+<div>
+<h2 style="font-size:1.15rem; font-weight:800; color:#fff;">Admin Command Console</h2>
+<p style="font-size:0.75rem; color:var(--text-muted);">Manage official 8 rounds, points allotment &amp; flight progress</p>
+</div>
+</div>
+<button class="btn btn-sm" onclick="toggleAdminModal(false)" style="font-size:1rem; padding:4px 10px;">✕</button>
+</div>
+<!-- Quick Action Bar -->
+<div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:space-between; align-items:center;">
+<div class="role-tabs">
+<button class="role-tab active" id="modal-tab-rounds" onclick="switchAdminTab('rounds')">Official 8 Rounds</button>
+<button class="role-tab" id="modal-tab-points" onclick="switchAdminTab('points')">Team Scores &amp; Adjust</button>
+</div>
+<div style="display:flex; gap:8px;">
+<button class="btn btn-sm btn-danger" id="modal-reset-btn" onclick="confirmAndResetCompetition(this)">🔄 Reset to $0 (Clean Start)</button>
+</div>
+</div>
+<!-- Tab 1: Rounds Allotment (Mirror also available in scorekeeper view) -->
+<div id="admin-pane-rounds" style="display:flex; flex-direction:column; gap:14px;">
+<div style="font-size:0.78rem; color:var(--text-muted); font-weight:600;">SELECT ROUND TO ALLOT POINTS:</div>
+<div class="round-strip" id="modal-round-strip-buttons"></div>
+<!-- Selected Round Action Box -->
+<div class="round-workbench">
+<div>
+<div style="margin-bottom:12px; display:flex; justify-content:space-between; align-items:flex-start;">
+<div>
+<span style="font-size:0.7rem; color:#38bdf8; font-weight:800; text-transform:uppercase;">Award Winners for</span>
+<h3 id="modal-bench-round-name" style="font-size:1rem; font-weight:800; color:#fff;">Round 1: Network champion</h3>
+<span id="modal-bench-round-type" style="font-size:0.72rem; color:var(--text-muted);">Challenge • 1st: +$100 | 2nd: +$50</span>
+</div>
+</div>
+<!-- 1st Place Selector -->
+<div class="podium-selector-row">
+<span class="podium-badge podium-gold">🥇 1st Place</span>
+<select id="modal-select-round-1st" style="background:#090d16; border:1px solid var(--border); border-radius:8px; padding:6px 10px; color:#fff; font-size:0.8rem; width:100%;"></select>
+<span class="prize-tag" id="modal-bench-1st-val">+$100</span>
+</div>
+<!-- 2nd Place Selector -->
+<div class="podium-selector-row">
+<span class="podium-badge podium-silver">🥈 2nd Place</span>
+<select id="modal-select-round-2nd" style="background:#090d16; border:1px solid var(--border); border-radius:8px; padding:6px 10px; color:#fff; font-size:0.8rem; width:100%;"></select>
+<span class="prize-tag" id="modal-bench-2nd-val">+$50</span>
+</div>
+<div style="display:flex; gap:8px; margin-top:14px;">
+<button class="btn btn-primary" onclick="awardSelectedRoundPoints('modal')" style="flex:1; padding:9px;">
+                🏆 Award Round Victory Points &amp; Badges
+              </button>
+<button class="btn" onclick="clearRoundSelections('modal')" style="padding:9px 14px;">Clear</button>
+</div>
+</div>
+<!-- Round Victory History -->
+<div style="display:flex; flex-direction:column; gap:8px;">
+<div style="display:flex; justify-content:space-between; align-items:center;">
+<span style="font-size:0.75rem; font-weight:700; color:var(--text-muted);">Round Award Log</span>
+<button class="btn btn-sm" onclick="clearRoundHistory()" style="font-size:0.68rem; padding:2px 8px;">Clear Log</button>
+</div>
+<div class="round-history-log" id="modal-round-history-container"></div>
+</div>
+</div>
+</div>
+<!-- Tab 2: Manual Points & Team Balance Adjustments -->
+<div id="admin-pane-points" style="display:none; flex-direction:column; gap:12px;">
+<div class="sk-table-container">
+<table class="sk-table">
+<thead>
+<tr>
+<th>Squadron</th>
+<th>Leader</th>
+<th>Current Balance</th>
+<th>Quick Add</th>
+<th>Custom Adjust</th>
+</tr>
+</thead>
+<tbody id="modal-sk-tbody"></tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="app-container">
+<!-- Header -->
+<header>
+<div class="brand">
+<span class="brand-icon">💵</span>
+<div class="brand-text">
+<h1>Race to the Top - Finance Edition</h1>
+<span>OFFICIAL 8-ROUND COMPETITION • REAL-TIME AUDIENCE BROADCAST</span>
+</div>
+</div>
+<div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+<div style="display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:999px; background:rgba(16, 185, 129, 0.12); border:1px solid rgba(16, 185, 129, 0.35); font-size:0.75rem; font-weight:700; color:#6ee7b7;">
+<span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10b981; box-shadow:0 0 10px #10b981;"></span>
+<span>LIVE BROADCAST FEED</span>
+</div>
+<button class="btn btn-sm" id="sound-btn" onclick="toggleAudio()"><span id="sound-icon">🔇</span> Sound Off</button>
+<button class="btn btn-sm" onclick="toggleProjector(true)">📺 Projector Mode</button>
+<button class="btn btn-sm" onclick="runDemoAudienceSimulation()" style="border-color:rgba(56,189,248,0.4); background:rgba(56,189,248,0.1); color:#bae6fd;" title="Simulate live point awards and vessel movement in real time">⚡ Live Demo Sim</button>
+<button class="btn btn-sm btn-reset-header" id="header-reset-btn" onclick="confirmAndResetCompetition(this)" title="Reset all 5 teams back to $0, Round 1, and clear all badges">↺ Reset to $0</button>
+<button class="btn btn-sm" onclick="toggleAdminModal(true)" style="border-color:rgba(245,158,11,0.5); background:rgba(245,158,11,0.12); color:#fde68a;">🔒 Admin Portal</button>
+</div>
+</header>
+<!-- Role & Status Bar -->
+<div class="role-bar">
+<div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+<div class="role-tabs">
+<button class="role-tab active" id="tab-aud" onclick="switchRole('audience')">Audience View</button>
+<button class="role-tab" id="tab-sk" onclick="switchRole('scorekeeper')">Scorekeeper &amp; Admin</button>
+<button class="role-tab" id="tab-lead" onclick="switchRole('leader')">Team Leader</button>
+</div>
+<div style="display:inline-flex; align-items:center; gap:8px; background:rgba(56,189,248,0.12); border:1px solid #38bdf8; padding:5px 14px; border-radius:999px;">
+<span style="font-size:0.85rem;">🎯</span>
+<span id="hud-round-label" style="font-size:0.78rem; font-weight:800; color:#e0f2fe;">Round 1: Network champion</span>
+<span style="background:#0284c7; color:#fff; font-size:0.65rem; padding:1px 6px; border-radius:4px; font-weight:800; text-transform:uppercase;">Active Round</span>
+</div>
+<div style="font-size:0.75rem; color:var(--text-muted); display:flex; align-items:center; gap:6px;">
+<span>Stakes:</span>
+<span id="hud-round-prizes" style="color:#34d399; font-weight:800;">1st: +$100 • 2nd: +$50</span>
+</div>
+</div>
+<div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+<div class="save-indicator" id="storage-status-pill">
+<span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#10b981;"></span>
+<span id="storage-status-text">Saved to browser storage</span>
+</div>
+<div style="display:flex; align-items:center; gap:6px;">
+<span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10b981; box-shadow:0 0 8px #10b981;"></span>
+<span style="font-size:0.75rem; font-weight:600; color:#94a3b8;">Real-Time Sync: apex_race_channel Active</span>
+</div>
+<div style="font-size:0.72rem; color:var(--text-dim); background:rgba(0,0,0,0.4); padding:3px 8px; border-radius:6px;">Campaign Goal: $10,000</div>
+</div>
+</div>
+<!-- Team Leader Deep Dive Section (Shown in 'leader' role) -->
+<section class="collapsible-card" id="registration-section" style="display:none;">
+<div class="card-header" onclick="toggleCollapse('registration-body')">
+<h2><span>👨‍✈️</span> Team Leader Telemetry &amp; Registration Portal</h2>
+<span style="font-size:0.75rem; color:var(--text-muted);">Toggle View ▾</span>
+</div>
+<div class="card-body" id="registration-body">
+<div id="team-leader-switcher-bar" style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;"></div>
+<div id="leader-telemetry-card" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:14px; background:rgba(0,0,0,0.3); padding:16px; border-radius:14px; border:1px solid var(--border);"></div>
+<form id="team-edit-form" onsubmit="handleTeamSubmit(event)" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)) auto auto; gap:12px; align-items:flex-end;">
+<input id="reg-team-id" type="hidden" value="team-1"/>
+<div>
+<label for="reg-team-name" style="font-size:0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Squadron Name</label>
+<input id="reg-team-name" required="" style="width:100%; padding:8px 12px; background:rgba(0,0,0,0.5); border:1px solid var(--border); border-radius:8px; color:#fff;" type="text"/>
+</div>
+<div>
+<label for="reg-leader-name" style="font-size:0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Commander Name</label>
+<input autocomplete="off" id="reg-leader-name" required="" style="width:100%; padding:8px 12px; background:rgba(0,0,0,0.5); border:1px solid var(--border); border-radius:8px; color:#fff;" type="text"/>
+</div>
+<div style="min-width:90px;">
+<label for="reg-team-color" style="font-size:0.75rem; font-weight:700; color:var(--text-muted); display:block; margin-bottom:4px;">Hull Color</label>
+<input id="reg-team-color" style="width:100%; height:38px; padding:2px; background:rgba(0,0,0,0.5); border:1px solid var(--border); border-radius:8px; cursor:pointer;" type="color" value="#10b981"/>
+</div>
+<button class="btn btn-primary" id="reg-submit-btn" style="padding:9px 18px;" type="submit">Update Squadron</button>
+</form>
+</div>
+</section>
+<!-- Scorekeeper & Admin In-Page Control Section (Shown in 'scorekeeper' role) -->
+<section class="collapsible-card" id="scorekeeper-section" style="display:none;">
+<div class="card-header" onclick="toggleCollapse('sk-body')">
+<h2><span>⚡</span> Scorekeeper Command Center &amp; Dedicated Round Point Allotment</h2>
+<div style="display:flex; align-items:center; gap:8px;">
+<button class="btn btn-sm btn-danger" onclick="event.stopPropagation(); confirmAndResetCompetition(this);">↺ Reset to $0</button>
+<span style="font-size:0.75rem; color:var(--text-muted);">Toggle View ▾</span>
+</div>
+</div>
+<div class="card-body" id="sk-body">
+<div class="round-control-container">
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+<div id="page-strip-title" style="font-size:0.85rem; font-weight:800; color:#38bdf8;">Active: Round 1 • Network champion</div>
+<div style="display:flex; align-items:center; gap:10px;">
+<span style="font-size:0.72rem; color:var(--text-muted);">Click any round to switch &amp; award</span>
+<button class="btn btn-sm btn-danger" onclick="confirmAndResetCompetition(this)" style="padding:3px 10px; font-size:0.72rem;">↺ Reset Competition</button>
+</div>
+</div>
+<div class="round-strip" id="page-round-strip-buttons"></div>
+<div class="round-workbench">
+<div>
+<div style="margin-bottom:12px;">
+<h3 id="page-bench-round-name" style="font-size:1.05rem; font-weight:800; color:#fff;">Round 1: Network champion</h3>
+<span id="page-bench-round-type" style="font-size:0.75rem; color:var(--text-muted);">Challenge • 1st: +$100 | 2nd: +$50</span>
+</div>
+<div class="podium-selector-row">
+<span class="podium-badge podium-gold">🥇 1st Place</span>
+<select id="page-select-round-1st" style="background:#090d16; border:1px solid var(--border); border-radius:8px; padding:6px 10px; color:#fff; font-size:0.8rem; width:100%;"></select>
+<span class="prize-tag" id="page-bench-1st-val">+$100</span>
+</div>
+<div class="podium-selector-row">
+<span class="podium-badge podium-silver">🥈 2nd Place</span>
+<select id="page-select-round-2nd" style="background:#090d16; border:1px solid var(--border); border-radius:8px; padding:6px 10px; color:#fff; font-size:0.8rem; width:100%;"></select>
+<span class="prize-tag" id="page-bench-2nd-val">+$50</span>
+</div>
+<div style="display:flex; gap:8px; margin-top:14px;">
+<button class="btn btn-primary" onclick="awardSelectedRoundPoints('page')" style="flex:1; padding:9px;">
+                  🏆 Award Round Victory Points &amp; Badges
+                </button>
+<button class="btn" onclick="clearRoundSelections('page')" style="padding:9px 14px;">Clear</button>
+</div>
+</div>
+<div style="display:flex; flex-direction:column; gap:8px;">
+<div style="display:flex; justify-content:space-between; align-items:center;">
+<span style="font-size:0.75rem; font-weight:700; color:var(--text-muted);">Round Award Log</span>
+<button class="btn btn-sm" onclick="clearRoundHistory()" style="font-size:0.68rem; padding:2px 8px;">Clear Log</button>
+</div>
+<div class="round-history-log" id="page-round-history-container"></div>
+</div>
+</div>
+</div>
+<div class="sk-table-container">
+<table class="sk-table">
+<thead>
+<tr>
+<th>Finance Squadron</th>
+<th>Commander</th>
+<th>Total Funds</th>
+<th>Round Win Badges</th>
+<th>Quick Allot (Active Rnd)</th>
+<th>Adjust Funds</th>
+<th>Custom Amount</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody id="page-sk-tbody"></tbody>
+</table>
+</div>
+</div>
+</section>
+<!-- Main Cosmos Flight Sector Arena -->
+<main class="cosmos-flight-arena">
+<div class="celestial-planet"></div>
+<div class="stargate-finish"></div>
+<div class="stargate-label">🌌 $10,000 Orbit</div>
+<!-- Arena Top Bar & Standings HUD -->
+<div style="position:relative; z-index:10; display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px;">
+<div>
+<h2 style="font-size:1.3rem; font-weight:800; background:linear-gradient(135deg, #fff, #a7f3d0, #f59e0b); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
+            🌌 Open Cosmos Flight Sector
+          </h2>
+<div style="display:flex; align-items:center; gap:8px; margin-top:2px;">
+<span id="arena-vessel-count-subtitle" style="font-size:0.75rem; color:#34d399; font-weight:700;">5 Finance Vessels in Flight</span>
+<span style="color:var(--text-dim)">•</span>
+<span id="arena-round-tag" style="font-size:0.75rem; color:#38bdf8; font-weight:700; background:rgba(56,189,248,0.15); padding:2px 8px; border-radius:6px; border:1px solid rgba(56,189,248,0.3);">Round 1: Network champion</span>
+</div>
+</div>
+<div id="hud-standings-bar" style="display:flex; gap:8px; flex-wrap:wrap;"></div>
+</div>
+<!-- Free-flight Space Stage for Cash Stacks -->
+<div class="flight-stage" id="flight-stage"></div>
+</main>
+<!-- Audience Standings & Leaderboard Section -->
+<section class="collapsible-card" id="audience-standings-section">
+<div style="padding:14px 20px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); background:rgba(255,255,255,0.015);">
+<div style="display:flex; align-items:center; gap:10px;">
+<span style="font-size:1.1rem;">🏆</span>
+<h2 style="font-size:1rem; font-weight:800; color:#fff; letter-spacing:0.02em;">Official Leaderboard Standings &amp; Round Badges</h2>
+<span style="font-size:0.7rem; background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.3); padding:2px 8px; border-radius:999px; font-weight:700;">Live Auto-Sorted</span>
+</div>
+<div style="font-size:0.74rem; color:var(--text-muted);">
+          Target Orbit: <strong style="color:#34d399;">$10,000</strong> Finish Stargate
+        </div>
+</div>
+<div class="card-body" style="padding:16px;">
+<div class="sk-table-container">
+<table class="sk-table">
+<thead>
+<tr>
+<th style="width:70px; text-align:center;">Rank</th>
+<th>Finance Squadron</th>
+<th>Commander</th>
+<th style="text-align:right;">Total Cash Raised</th>
+<th>Flight Progress</th>
+<th>Round Win Trophies</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody id="audience-leaderboard-tbody"></tbody>
+</table>
+</div>
+</div>
+</section>
+</div>
+<script>
+    /* 1. INITIAL PRE-REGISTERED 5 CORPORATE FINANCE TEAMS (ALL START AT $0 & NO BADGES) */
+    const INITIAL_FINANCE_TEAMS = [
+      { id: 'team-1', name: 'Financial Planning & Analysis', leader: 'Chloe Bennett', color: '#10b981', secondaryColor: '#06b6d4', roundWins: [] },
+      { id: 'team-2', name: 'Accounts Receivable', leader: 'Siddharth R.', color: '#3b82f6', secondaryColor: '#6366f1', roundWins: [] },
+      { id: 'team-3', name: 'Corporate Finance & Treasury', leader: 'Elena Rostova', color: '#f43f5e', secondaryColor: '#e11d48', roundWins: [] },
+      { id: 'team-4', name: 'Accounts Payable', leader: 'Maya Lin', color: '#f59e0b', secondaryColor: '#f97316', roundWins: [] },
+      { id: 'team-5', name: 'Financial Reporting', leader: 'Marcus Cole', color: '#a855f7', secondaryColor: '#ec4899', roundWins: [] }
+    ];
+
+    const INITIAL_SCORES = {
+      'team-1': 0,
+      'team-2': 0,
+      'team-3': 0,
+      'team-4': 0,
+      'team-5': 0
+    };
+
+    /* 2. OFFICIAL 8 COMPETITION ROUNDS CONFIGURATION */
+    const GAME_ROUNDS = [
+      { id: 1, name: 'Network champion', first: 100, second: 50, type: 'Challenge' },
+      { id: 2, name: 'Case Study 1 - Master the Budget', first: 1000, second: 500, type: 'Case Study' },
+      { id: 3, name: 'Count Down Challenge', first: 100, second: 50, type: 'Challenge' },
+      { id: 4, name: 'Case Study 2 - The Cash Flow Challenge', first: 1000, second: 500, type: 'Case Study' },
+      { id: 5, name: 'The Signature Hunt', first: 100, second: 50, type: 'Challenge' },
+      { id: 6, name: 'Case Study 3 - Think Like a CFO', first: 1000, second: 500, type: 'Case Study' },
+      { id: 7, name: 'Decode The Corporate Language', first: 100, second: 50, type: 'Challenge' },
+      { id: 8, name: 'Revenue Short Fall Review Meeting', first: 1000, second: 500, type: 'Case Study' }
+    ];
+
+    /* APP STORAGE KEY & STATE */
+    const STORAGE_KEY = 'race_to_the_top_finance_state_v1';
+
+    let teams = [];
+    let scores = {};
+    let campaignGoal = 10000;
+    let activeRoundId = 1;
+    let roundHistory = [];
+    let currentRole = 'audience';
+    let selectedLeaderTeamId = 'team-1';
+    let audioUnlocked = false;
+    let audioCtx = null;
+    let lastAwardedBadgeKey = null;
+
+    /* 3. PERSISTENCE & REAL-TIME BROADCASTCHANNEL SYNC */
+    let channel = null;
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        channel = new BroadcastChannel('apex_race_channel');
+      }
+    } catch (e) {
+      console.warn('BroadcastChannel not supported or restricted in this environment.');
+    }
+
+    function loadPersistedState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && Array.isArray(parsed.teams) && parsed.scores) {
+            teams = parsed.teams;
+            scores = parsed.scores;
+            activeRoundId = parsed.activeRoundId || 1;
+            roundHistory = parsed.roundHistory || [];
+            campaignGoal = parsed.campaignGoal || 10000;
+            return true;
+          }
+        }
+      } catch (e) {
+        console.error('Failed reading state:', e);
+      }
+      return false;
+    }
+
+    function initAppState() {
+      const loaded = loadPersistedState();
+      if (!loaded || !teams.length) {
+        teams = JSON.parse(JSON.stringify(INITIAL_FINANCE_TEAMS));
+        scores = { ...INITIAL_SCORES };
+        activeRoundId = 1;
+        roundHistory = [];
+        campaignGoal = 10000;
+        persistState(false);
+      }
+      selectedLeaderTeamId = teams[0]?.id || 'team-1';
+      syncFormFieldsWithSelectedTeam();
+    }
+
+    function persistState(broadcast = true) {
+      try {
+        const payload = {
+          teams,
+          scores,
+          activeRoundId,
+          roundHistory,
+          campaignGoal,
+          timestamp: Date.now()
+        };
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+        } catch(storageErr) {
+          console.warn('LocalStorage error:', storageErr);
+        }
+        flashSavedIndicator();
+        if (broadcast && channel) {
+          channel.postMessage({ type: 'STATE_UPDATE', payload });
+        }
+      } catch (e) {
+        console.error('Error saving state:', e);
+      }
+    }
+
+    if (channel) {
+      channel.onmessage = (event) => {
+        if (event.data && event.data.type === 'STATE_UPDATE' && event.data.payload) {
+          applyExternalPayload(event.data.payload);
+        }
+      };
+    }
+
+    window.addEventListener('storage', (e) => {
+      if (e.key === STORAGE_KEY && e.newValue) {
+        try {
+          applyExternalPayload(JSON.parse(e.newValue));
+        } catch(err){}
+      }
+    });
+
+    function applyExternalPayload(payload) {
+      if (payload.teams) teams = payload.teams;
+      if (payload.scores) scores = payload.scores;
+      if (payload.activeRoundId) activeRoundId = payload.activeRoundId;
+      if (payload.roundHistory) roundHistory = payload.roundHistory;
+      if (payload.campaignGoal) campaignGoal = payload.campaignGoal;
+      flashSavedIndicator('Synced via apex_race_channel');
+      syncFormFieldsWithSelectedTeam();
+      renderAll();
+    }
+
+    function flashSavedIndicator(customText) {
+      const pill = document.getElementById('storage-status-pill');
+      const text = document.getElementById('storage-status-text');
+      if (!pill || !text) return;
+      const now = new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+      text.textContent = customText || `Saved (${now})`;
+      pill.classList.add('flash');
+      setTimeout(() => pill.classList.remove('flash'), 1200);
+    }
+
+    /* Reliable seamless reset handler */
+    function confirmAndResetCompetition(triggerBtn) {
+      resetToInitialState(triggerBtn);
+    }
+
+    function resetCompetition(triggerBtn) {
+      resetToInitialState(triggerBtn);
+    }
+
+    function resetToZero(triggerBtn) {
+      resetToInitialState(triggerBtn);
+    }
+
+    function resetToInitialState(triggerBtn) {
+      try {
+        teams = JSON.parse(JSON.stringify(INITIAL_FINANCE_TEAMS));
+        scores = { ...INITIAL_SCORES };
+        activeRoundId = 1;
+        roundHistory = [];
+        campaignGoal = 10000;
+        lastAwardedBadgeKey = null;
+        selectedLeaderTeamId = teams[0]?.id || 'team-1';
+
+        clearRoundSelections('modal');
+        clearRoundSelections('page');
+
+        try {
+          localStorage.removeItem(STORAGE_KEY);
+          sessionStorage.clear();
+        } catch(storageErr) {
+          console.warn('Storage cleanup issue:', storageErr);
+        }
+
+        persistState(true);
+        syncFormFieldsWithSelectedTeam();
+        renderAll();
+        playResetSound();
+
+        if (triggerBtn && triggerBtn.tagName) {
+          const originalHTML = triggerBtn.innerHTML;
+          triggerBtn.innerHTML = '✓ Reset Complete!';
+          triggerBtn.classList.add('btn-reset-success');
+          setTimeout(() => {
+            triggerBtn.innerHTML = originalHTML;
+            triggerBtn.classList.remove('btn-reset-success');
+          }, 1800);
+        }
+
+        showToast('Competition reset to $0! All squadrons at starting line.');
+      } catch (err) {
+        console.error('Reset execution error:', err);
+        showToast('Reset executed: Teams at $0');
+      }
+    }
+
+    function formatDollars(val) {
+      return '$' + (val || 0).toLocaleString();
+    }
+
+    /* 4. PROCEDURAL WEB AUDIO SYNTHESIZER (Cash Register, Chime, Fanfare, Reset Sweep) */
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioC = window.AudioContext || window.webkitAudioContext;
+        if (AudioC) audioCtx = new AudioC();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function toggleAudio() {
+      initAudio();
+      audioUnlocked = !audioUnlocked;
+      const btn = document.getElementById('sound-btn');
+      const icon = document.getElementById('sound-icon');
+      if (audioUnlocked) {
+        icon.textContent = '🔊';
+        btn.classList.add('btn-sound-active');
+        playCashChime();
+        showToast('Real-time Web Audio Synthesizer Active! 💸');
+      } else {
+        icon.textContent = '🔇';
+        btn.classList.remove('btn-sound-active');
+        showToast('Sound Muted');
+      }
+    }
+
+    function playCashChime() {
+      if (!audioUnlocked || !audioCtx) return;
+      try {
+        const now = audioCtx.currentTime;
+        const osc1 = audioCtx.createOscillator();
+        const g1 = audioCtx.createGain();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(1975.5, now);
+        g1.gain.setValueAtTime(0.25, now);
+        g1.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+        osc1.connect(g1); g1.connect(audioCtx.destination);
+        osc1.start(now); osc1.stop(now + 0.36);
+
+        const osc2 = audioCtx.createOscillator();
+        const g2 = audioCtx.createGain();
+        osc2.type = 'triangle';
+        osc2.frequency.setValueAtTime(2637.0, now + 0.08);
+        g2.gain.setValueAtTime(0.32, now + 0.08);
+        g2.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+        osc2.connect(g2); g2.connect(audioCtx.destination);
+        osc2.start(now + 0.08); osc2.stop(now + 0.71);
+      } catch(e) {}
+    }
+
+    function playCoinDrop() {
+      if (!audioUnlocked || !audioCtx) return;
+      try {
+        const now = audioCtx.currentTime;
+        [1800, 2200, 2600].forEach((freq, idx) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          const t = now + idx * 0.06;
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, t);
+          gain.gain.setValueAtTime(0.18, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+          osc.connect(gain); gain.connect(audioCtx.destination);
+          osc.start(t); osc.stop(t + 0.21);
+        });
+      } catch(e) {}
+    }
+
+    function playResetSound() {
+      if (!audioUnlocked || !audioCtx) return;
+      try {
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(600, now);
+        osc.frequency.exponentialRampToValueAtTime(150, now + 0.35);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.36);
+      } catch(e) {}
+    }
+
+    function playFanfare() {
+      if (!audioUnlocked || !audioCtx) return;
+      try {
+        const notes = [523.25, 659.25, 783.99, 1046.50];
+        const now = audioCtx.currentTime;
+        notes.forEach((freq, idx) => {
+          const osc = audioCtx.createOscillator();
+          const g = audioCtx.createGain();
+          const t = now + idx * 0.1;
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(freq, t);
+          g.gain.setValueAtTime(0.2, t);
+          g.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+          osc.connect(g); g.connect(audioCtx.destination);
+          osc.start(t); osc.stop(t + 0.42);
+        });
+      } catch(e) {}
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast-msg');
+      if (!t) return;
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2600);
+    }
+
+    /* 5. ROUND CONTROLS & DYNAMIC BADGE ALLOTMENT */
+    function getActiveRound() {
+      return GAME_ROUNDS.find(r => r.id === activeRoundId) || GAME_ROUNDS[0];
+    }
+
+    function setActiveRound(id) {
+      activeRoundId = id;
+      persistState();
+      renderAll();
+      const r = getActiveRound();
+      showToast(`Active Round set to Round ${r.id}: ${r.name}`);
+      playCoinDrop();
+    }
+
+    function addTeamRoundWin(teamId, roundId, roundName, place, amount) {
+      const team = teams.find(t => t.id === teamId);
+      if (!team) return;
+      if (!team.roundWins) team.roundWins = [];
+      team.roundWins = team.roundWins.filter(w => w.roundId !== roundId);
+      team.roundWins.unshift({
+        roundId,
+        roundName,
+        place,
+        amount,
+        timestamp: Date.now()
+      });
+      lastAwardedBadgeKey = `${teamId}-r${roundId}`;
+    }
+
+    function awardSelectedRoundPoints(source = 'page') {
+      const prefix = source === 'modal' ? 'modal-' : 'page-';
+      const s1 = document.getElementById(`${prefix}select-round-1st`);
+      const s2 = document.getElementById(`${prefix}select-round-2nd`);
+      const t1 = s1 ? s1.value : '';
+      const t2 = s2 ? s2.value : '';
+
+      if (!t1 && !t2) return showToast('Please select at least 1st or 2nd place team!');
+      if (t1 && t2 && t1 === t2) return showToast('One squadron cannot take both 1st and 2nd in the same round!');
+
+      const r = getActiveRound();
+      let summary = [];
+
+      if (t1) {
+        scores[t1] = (scores[t1] || 0) + r.first;
+        const name = teams.find(t => t.id === t1)?.name || 'Squadron';
+        summary.push(`1st: ${name} (+${formatDollars(r.first)})`);
+        logRound(r.id, r.name, name, '1st', r.first);
+        addTeamRoundWin(t1, r.id, r.name, 1, r.first);
+      }
+      if (t2) {
+        scores[t2] = (scores[t2] || 0) + r.second;
+        const name = teams.find(t => t.id === t2)?.name || 'Squadron';
+        summary.push(`2nd: ${name} (+${formatDollars(r.second)})`);
+        logRound(r.id, r.name, name, '2nd', r.second);
+        addTeamRoundWin(t2, r.id, r.name, 2, r.second);
+      }
+
+      const maxScore = Math.max(...Object.values(scores));
+      if (maxScore >= campaignGoal) {
+        triggerConfetti();
+        playFanfare();
+      } else {
+        playCashChime();
+      }
+
+      if (activeRoundId < GAME_ROUNDS.length) {
+        activeRoundId += 1;
+      }
+
+      persistState();
+      renderAll();
+      showToast(`Awarded Round ${r.id}: ${summary.join(' & ')}! 💸`);
+      clearRoundSelections('modal');
+      clearRoundSelections('page');
+    }
+
+    function quickAllot(teamId, place) {
+      const r = getActiveRound();
+      const pts = place === 1 ? r.first : r.second;
+      scores[teamId] = (scores[teamId] || 0) + pts;
+      const name = teams.find(t => t.id === teamId)?.name || 'Squadron';
+      logRound(r.id, r.name, name, place === 1 ? '1st' : '2nd', pts);
+      addTeamRoundWin(teamId, r.id, r.name, place, pts);
+
+      persistState();
+      renderAll();
+      playCashChime();
+      showToast(`Awarded Round ${r.id} ${place === 1 ? '1st 🥇' : '2nd 🥈'} (+${formatDollars(pts)}) to ${name}!`);
+    }
+
+    function adjustFunds(teamId, delta) {
+      scores[teamId] = Math.max(0, (scores[teamId] || 0) + delta);
+      const name = teams.find(t => t.id === teamId)?.name || 'Squadron';
+      persistState();
+      renderAll();
+      playCashChime();
+      showToast(`${delta > 0 ? '+' : ''}${formatDollars(delta)} adjusted for ${name}`);
+    }
+
+    function applyCustomTeamInput(teamId) {
+      const input = document.getElementById(`custom-amt-${teamId}`);
+      if (!input) return;
+      const val = parseInt(input.value, 10);
+      if (isNaN(val) || val === 0) return;
+      adjustFunds(teamId, val);
+      input.value = '';
+    }
+
+    function logRound(roundId, roundName, teamName, place, amount) {
+      roundHistory.unshift({
+        roundId, roundName, teamName, place, amount,
+        time: new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' })
+      });
+      if (roundHistory.length > 40) roundHistory.pop();
+    }
+
+    function clearRoundHistory() {
+      roundHistory = [];
+      persistState();
+      renderRoundHistory();
+      showToast('Round award log cleared');
+    }
+
+    function clearRoundSelections(source = 'page') {
+      const prefix = source === 'modal' ? 'modal-' : 'page-';
+      const s1 = document.getElementById(`${prefix}select-round-1st`);
+      const s2 = document.getElementById(`${prefix}select-round-2nd`);
+      if (s1) s1.value = '';
+      if (s2) s2.value = '';
+    }
+
+    /* 6. RENDERING FUNCTIONS */
+    function renderRoundButtons(targetId) {
+      const container = document.getElementById(targetId);
+      if (!container) return;
+      container.innerHTML = GAME_ROUNDS.map(r => {
+        const isActive = r.id === activeRoundId;
+        const isCase = r.type === 'Case Study';
+        const hasWon = teams.some(t => (t.roundWins || []).some(w => w.roundId === r.id));
+        return `
+          <button class="round-card-btn ${isActive ? 'active' : ''} ${isCase ? 'case-study' : ''} ${hasWon ? 'has-won' : ''}" onclick="setActiveRound(${r.id})" type="button">
+            <span class="r-num">Round ${r.id} • ${r.type} ${hasWon ? '✓' : ''}</span>
+            <span class="r-title" title="${r.name}">${r.name}</span>
+            <span class="r-points">1st: +${formatDollars(r.first)} | 2nd: +${formatDollars(r.second)}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function populateSelects(selectId) {
+      const s = document.getElementById(selectId);
+      if (!s) return;
+      const cur = s.value;
+      const options = `<option value="">-- Choose Squadron --</option>` + teams.map(t => {
+        return `<option value="${t.id}">${t.name} (${formatDollars(scores[t.id])})</option>`;
+      }).join('');
+      s.innerHTML = options;
+      if (teams.some(t => t.id === cur)) s.value = cur;
+    }
+
+    function renderRoundHistory() {
+      ['page-round-history-container', 'modal-round-history-container'].forEach(cid => {
+        const c = document.getElementById(cid);
+        if (!c) return;
+        if (!roundHistory.length) {
+          c.innerHTML = `<div style="color:var(--text-dim); font-size:0.75rem; text-align:center; padding:18px;">No round points awarded yet.</div>`;
+          return;
+        }
+        c.innerHTML = roundHistory.map(h => `
+          <div class="history-entry ${h.place === '1st' ? 'gold-win' : 'silver-win'}">
+            <div>
+              <strong style="color:${h.place === '1st' ? '#f59e0b' : '#cbd5e1'};">${h.place === '1st' ? '🥇' : '🥈'} R${h.roundId}</strong>
+              <span style="font-weight:700; margin-left:4px;">${h.teamName}</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="color:#34d399; font-weight:800;">+${formatDollars(h.amount)}</span>
+              <span style="color:var(--text-dim); font-size:0.68rem;">${h.time}</span>
+            </div>
+          </div>
+        `).join('');
+      });
+    }
+
+    function renderAll() {
+      const cur = getActiveRound();
+      const fullText = `Round ${cur.id}: ${cur.name}`;
+
+      const hudLabel = document.getElementById('hud-round-label');
+      if (hudLabel) hudLabel.textContent = fullText;
+      const hudPrizes = document.getElementById('hud-round-prizes');
+      if (hudPrizes) hudPrizes.textContent = `1st: +${formatDollars(cur.first)} • 2nd: +${formatDollars(cur.second)}`;
+      const arenaTag = document.getElementById('arena-round-tag');
+      if (arenaTag) arenaTag.textContent = fullText;
+      const pageStripTitle = document.getElementById('page-strip-title');
+      if (pageStripTitle) pageStripTitle.textContent = `Active: Round ${cur.id} • ${cur.name}`;
+
+      ['page', 'modal'].forEach(p => {
+        const nameEl = document.getElementById(`${p}-bench-round-name`);
+        if (nameEl) nameEl.textContent = fullText;
+        const typeEl = document.getElementById(`${p}-bench-round-type`);
+        if (typeEl) typeEl.textContent = `${cur.type} • 1st: +${formatDollars(cur.first)} | 2nd: +${formatDollars(cur.second)}`;
+        const val1 = document.getElementById(`${p}-bench-1st-val`);
+        if (val1) val1.textContent = `+${formatDollars(cur.first)}`;
+        const val2 = document.getElementById(`${p}-bench-2nd-val`);
+        if (val2) val2.textContent = `+${formatDollars(cur.second)}`;
+      });
+
+      renderRoundButtons('page-round-strip-buttons');
+      renderRoundButtons('modal-round-strip-buttons');
+
+      populateSelects('page-select-round-1st');
+      populateSelects('page-select-round-2nd');
+      populateSelects('modal-select-round-1st');
+      populateSelects('modal-select-round-2nd');
+
+      renderRoundHistory();
+
+      const sorted = [...teams].sort((a,b) => (scores[b.id] || 0) - (scores[a.id] || 0));
+
+      const subtitleEl = document.getElementById('arena-vessel-count-subtitle');
+      if (subtitleEl) subtitleEl.textContent = `${teams.length} Finance Vessels in Flight`;
+
+      const hudBar = document.getElementById('hud-standings-bar');
+      if (hudBar) {
+        hudBar.innerHTML = sorted.map((t, idx) => `
+          <div style="display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; background:rgba(15,23,42,0.85); border:1px solid ${idx===0 ? '#f59e0b' : (t.color ? t.color + '44' : 'var(--border)')}; font-size:0.75rem; font-weight:700;">
+            <span style="width:18px; height:18px; border-radius:50%; background:${idx===0 ? '#f59e0b' : (t.color || 'rgba(255,255,255,0.1)')}; color:${idx===0 ? '#000' : '#fff'}; display:flex; align-items:center; justify-content:center; font-size:0.68rem; font-weight:800;">${idx+1}</span>
+            <span style="max-width:140px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${t.name}</span>
+            <span style="color:#34d399;">${formatDollars(scores[t.id])}</span>
+          </div>
+        `).join('');
+      }
+
+      // Flight Stage Winged Cash Vessels with Dynamic Badges & Commander Names
+      const stage = document.getElementById('flight-stage');
+      if (stage) {
+        const stageWidth = stage.clientWidth || 920;
+        const stageHeight = stage.clientHeight || 420;
+
+        stage.innerHTML = sorted.map((t, idx) => {
+          const s = scores[t.id] || 0;
+          const progress = Math.min(1, Math.max(0, s / campaignGoal));
+          const xPos = 25 + progress * (stageWidth - 360);
+          const laneHeight = stageHeight / Math.max(teams.length, 1);
+          const yPos = 12 + idx * laneHeight;
+          const color = t.color || '#10b981';
+          const secColor = t.secondaryColor || '#38bdf8';
+
+          const winsList = t.roundWins || [];
+          let badgesClusterHtml = '';
+          if (winsList.length > 0) {
+            const badgesHtml = winsList.map(w => {
+              const isGold = w.place === 1;
+              const badgeKey = `${t.id}-r${w.roundId}`;
+              const shouldPop = (lastAwardedBadgeKey === badgeKey);
+              return `
+                <span class="r-win-pill ${isGold ? 'r-win-gold' : 'r-win-silver'} ${shouldPop ? 'badge-pop-animate' : ''}"
+                      title="Round ${w.roundId}: ${w.roundName} - ${isGold ? '1st Place' : '2nd Place'} (+${formatDollars(w.amount)})">
+                  ${isGold ? '🥇' : '🥈'} R${w.roundId}
+                </span>
+              `;
+            }).join('');
+
+            badgesClusterHtml = `
+              <div class="vessel-wins-strip">
+                ${badgesHtml}
+              </div>
+            `;
+          }
+
+          return `
+            <div class="space-vessel ${idx===0 && s > 0 ? 'lead-vessel' : ''}" style="left:${xPos}px; top:${yPos}px;" onclick="openEditTeamModal('${t.id}')" title="Click to edit: ${t.name} (Commander: ${t.leader})">
+              <div class="cash-hull">
+                <svg width="48" height="36" viewBox="0 0 48 36" fill="none">
+                  <path d="M2 18L14 6V30L2 18Z" fill="${secColor}" opacity="0.88"></path>
+                  <path d="M46 18L34 6V30L46 18Z" fill="${secColor}" opacity="0.88"></path>
+                  <rect x="10" y="7" width="28" height="22" rx="3.5" fill="#0f172a" stroke="${color}" stroke-width="2"></rect>
+                  <circle cx="24" cy="18" r="6" fill="rgba(0,0,0,0.6)" stroke="${secColor}" stroke-width="1.2"></circle>
+                  <text x="24" y="22.5" text-anchor="middle" font-size="11" font-weight="900" fill="${idx===0 && s > 0 ? '#f59e0b' : '#34d399'}" font-family="system-ui, sans-serif">$</text>
+                </svg>
+              </div>
+              <div class="vessel-hud-badge" style="border-left:3px solid ${color};">
+                <span class="badge-rank-tag">${idx+1}</span>
+                <div>
+                  <div class="badge-name">${t.name}</div>
+                  <div style="font-size:0.68rem; color:var(--text-muted);" id="vessel-leader-${t.id}">👨‍✈️ ${t.leader}</div>
+                </div>
+                <div style="border-left:1px solid rgba(255,255,255,0.1); padding-left:8px;">
+                  <div class="badge-val">${formatDollars(s)}</div>
+                </div>
+                ${badgesClusterHtml}
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      renderAudienceLeaderboard(sorted);
+      renderScorekeeperTables(cur);
+      renderTeamLeaderSection(sorted);
+    }
+
+    function renderAudienceLeaderboard(sorted) {
+      const tbody = document.getElementById('audience-leaderboard-tbody');
+      if (!tbody) return;
+      tbody.innerHTML = sorted.map((t, idx) => {
+        const s = scores[t.id] || 0;
+        const color = t.color || '#10b981';
+        const pct = Math.min(100, Math.round((s / campaignGoal) * 100));
+        const wins = t.roundWins || [];
+        const winsHtml = wins.length > 0 ? wins.map(w => {
+          const isGold = w.place === 1;
+          return `<span class="r-win-pill ${isGold ? 'r-win-gold' : 'r-win-silver'}" title="Round ${w.roundId}: ${w.roundName} (+${formatDollars(w.amount)})">${isGold ? '🥇' : '🥈'} R${w.roundId}</span>`;
+        }).join('') : '<span style="color:var(--text-dim); font-size:0.7rem;">No trophies yet</span>';
+
+        return `
+          <tr>
+            <td style="text-align:center;">
+              <span style="display:inline-block; width:26px; height:26px; line-height:26px; border-radius:50%; background:${idx===0 && s > 0 ? '#f59e0b' : 'rgba(255,255,255,0.08)'}; color:${idx===0 && s > 0 ? '#000' : '#fff'}; font-weight:800; font-size:0.75rem;">${idx+1}</span>
+            </td>
+            <td>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:${color}; box-shadow:0 0 6px ${color};"></span>
+                <strong style="color:#fff;">${t.name}</strong>
+              </div>
+            </td>
+            <td style="color:var(--text-muted); font-size:0.82rem; font-weight:600;"><span style="color:#e2e8f0;">${t.leader}</span></td>
+            <td style="text-align:right;"><strong style="color:#34d399; font-size:1.05rem;">${formatDollars(s)}</strong></td>
+            <td style="width:200px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div style="flex:1; height:8px; background:rgba(255,255,255,0.08); border-radius:999px; overflow:hidden;">
+                  <div style="width:${pct}%; height:100%; background:linear-gradient(90deg, ${color}, #34d399); border-radius:999px; transition:width 0.4s;"></div>
+                </div>
+                <span style="font-size:0.72rem; color:var(--text-dim); min-width:32px; font-weight:700;">${pct}%</span>
+              </div>
+            </td>
+            <td><div style="display:flex; gap:4px; flex-wrap:wrap; align-items:center;">${winsHtml}</div></td>
+            <td>
+              <button class="btn btn-sm" onclick="openEditTeamModal('${t.id}')" style="font-size:0.72rem; padding:3px 8px; border-color:rgba(56,189,248,0.4); color:#38bdf8;">✏️ Edit</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderScorekeeperTables(curRound) {
+      const rows = teams.map(t => {
+        const s = scores[t.id] || 0;
+        const color = t.color || '#10b981';
+        const wins = t.roundWins || [];
+        const winsHtml = wins.length > 0 ? wins.map(w => {
+          const isGold = w.place === 1;
+          return `<span class="r-win-pill ${isGold ? 'r-win-gold' : 'r-win-silver'}" title="R${w.roundId}: ${w.roundName}">R${w.roundId} ${isGold ? '🥇' : '🥈'}</span>`;
+        }).join('') : '<span style="color:var(--text-dim); font-size:0.7rem;">None</span>';
+
+        return `
+          <tr>
+            <td>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:${color}; box-shadow:0 0 6px ${color};"></span>
+                <strong>${t.name}</strong>
+              </div>
+            </td>
+            <td style="color:var(--text-muted); font-weight:600;"><span style="color:#e2e8f0;">${t.leader}</span></td>
+            <td><strong style="color:#34d399; font-size:0.95rem;">${formatDollars(s)}</strong></td>
+            <td><div style="display:flex; gap:4px; flex-wrap:wrap; align-items:center;">${winsHtml}</div></td>
+            <td>
+              <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                <button class="btn btn-sm" onclick="quickAllot('${t.id}', 1)" style="padding:4px 8px; font-size:0.72rem; background:rgba(245,158,11,0.2); border-color:#f59e0b; color:#fef08a;">🥇 1st (+${formatDollars(curRound.first)})</button>
+                <button class="btn btn-sm" onclick="quickAllot('${t.id}', 2)" style="padding:4px 8px; font-size:0.72rem; background:rgba(148,163,184,0.2); border-color:#94a3b8; color:#cbd5e1;">🥈 2nd (+${formatDollars(curRound.second)})</button>
+              </div>
+            </td>
+            <td>
+              <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                <button class="btn btn-sm" onclick="adjustFunds('${t.id}', 1000)">+1K</button>
+                <button class="btn btn-sm" onclick="adjustFunds('${t.id}', 500)">+500</button>
+                <button class="btn btn-sm" onclick="adjustFunds('${t.id}', 100)">+100</button>
+                <button class="btn btn-sm" onclick="adjustFunds('${t.id}', -100)">-100</button>
+              </div>
+            </td>
+            <td>
+              <div style="display:flex; gap:4px; align-items:center;">
+                <input id="custom-amt-${t.id}" type="number" placeholder="±Amt" step="50" style="width:75px; padding:4px 6px; font-size:0.72rem; background:rgba(0,0,0,0.5); border:1px solid var(--border); border-radius:6px; color:#fff;" />
+                <button class="btn btn-sm btn-primary" onclick="applyCustomTeamInput('${t.id}')" style="padding:4px 8px; font-size:0.72rem;">Apply</button>
+              </div>
+            </td>
+            <td>
+              <button class="btn btn-sm" onclick="openEditTeamModal('${t.id}')" style="font-size:0.72rem; padding:4px 8px; border-color:rgba(56,189,248,0.4); color:#38bdf8;">✏️ Edit</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      const pageTable = document.getElementById('page-sk-tbody');
+      if (pageTable) pageTable.innerHTML = rows;
+
+      const modalTable = document.getElementById('modal-sk-tbody');
+      if (modalTable) {
+        modalTable.innerHTML = teams.map(t => {
+          const s = scores[t.id] || 0;
+          return `
+            <tr>
+              <td><strong>${t.name}</strong></td>
+              <td style="color:var(--text-muted); font-size:0.78rem;">${t.leader}</td>
+              <td><strong style="color:#34d399;">${formatDollars(s)}</strong></td>
+              <td>
+                <div style="display:flex; gap:4px;">
+                  <button class="btn btn-sm" onclick="adjustFunds('${t.id}', 1000)">+1000</button>
+                  <button class="btn btn-sm" onclick="adjustFunds('${t.id}', 500)">+500</button>
+                  <button class="btn btn-sm" onclick="adjustFunds('${t.id}', 100)">+100</button>
+                </div>
+              </td>
+              <td>
+                <button class="btn btn-sm btn-danger" onclick="adjustFunds('${t.id}', -100)">-100</button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+    }
+
+    function renderTeamLeaderSection(sorted) {
+      const switcher = document.getElementById('team-leader-switcher-bar');
+      if (switcher) {
+        switcher.innerHTML = teams.map(t => {
+          const isSel = t.id === selectedLeaderTeamId;
+          const color = t.color || '#38bdf8';
+          return `
+            <button type="button" onclick="selectLeaderTeam('${t.id}')" style="padding:6px 12px; border-radius:10px; font-size:0.75rem; font-weight:700; cursor:pointer; background:${isSel ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.35)'}; border:1px solid ${isSel ? color : 'var(--border)'}; color:#fff; display:inline-flex; align-items:center; gap:6px;">
+              <span style="width:8px; height:8px; border-radius:50%; background:${color};"></span>
+              <span>${t.name}</span>
+              <span style="color:#34d399; font-weight:800;">${formatDollars(scores[t.id])}</span>
+            </button>
+          `;
+        }).join('');
+      }
+
+      const card = document.getElementById('leader-telemetry-card');
+      if (card) {
+        const team = teams.find(t => t.id === selectedLeaderTeamId) || teams[0];
+        if (team) {
+          const rank = sorted.findIndex(t => t.id === team.id) + 1;
+          const teamScore = scores[team.id] || 0;
+          const leadScore = scores[sorted[0]?.id] || 0;
+          const gap = leadScore - teamScore;
+          const color = team.color || '#10b981';
+
+          const winPills = (team.roundWins || []).map(w => {
+            const isGold = w.place === 1;
+            return `<span class="r-win-pill ${isGold ? 'r-win-gold' : 'r-win-silver'}" title="R${w.roundId}: ${w.roundName}">R${w.roundId} ${isGold ? '🥇' : '🥈'}</span>`;
+          }).join(' ');
+
+          card.innerHTML = `
+            <div style="border-left:4px solid ${color}; padding-left:10px;">
+              <div style="font-size:0.7rem; color:#94a3b8; text-transform:uppercase; font-weight:700;">Squadron Name</div>
+              <div style="font-size:1rem; font-weight:800; color:#fff;">${team.name}</div>
+              <div style="font-size:0.78rem; color:#38bdf8; margin-top:2px;">👨‍✈️ Commander: <strong style="color:#fff;">${team.leader}</strong></div>
+            </div>
+            <div>
+              <div style="font-size:0.7rem; color:#94a3b8; text-transform:uppercase; font-weight:700;">Current Rank</div>
+              <div style="font-size:1.35rem; font-weight:900; color:${rank === 1 && teamScore > 0 ? '#f59e0b' : '#fff'};">#${rank} <span style="font-size:0.8rem; font-weight:600; color:#94a3b8;">of ${teams.length}</span></div>
+            </div>
+            <div>
+              <div style="font-size:0.7rem; color:#94a3b8; text-transform:uppercase; font-weight:700;">Total Funds &amp; Round Wins</div>
+              <div style="font-size:1.35rem; font-weight:900; color:#34d399;">${formatDollars(teamScore)}</div>
+              <div style="margin-top:4px; display:flex; gap:4px; flex-wrap:wrap;">${winPills || '<span style="color:var(--text-dim); font-size:0.7rem;">No round wins yet</span>'}</div>
+            </div>
+            <div>
+              <div style="font-size:0.7rem; color:#94a3b8; text-transform:uppercase; font-weight:700;">Gap to 1st Place</div>
+              <div style="font-size:1.1rem; font-weight:800; color:${gap === 0 ? '#f59e0b' : '#f43f5e'};">
+                ${gap === 0 ? (teamScore > 0 ? '🏆 P1 Leader!' : 'Tied ($0)') : `-${formatDollars(gap)}`}
+              </div>
+            </div>
+          `;
+        }
+      }
+    }
+
+    function syncFormFieldsWithSelectedTeam() {
+      const team = teams.find(t => t.id === selectedLeaderTeamId) || teams[0];
+      if (team) {
+        const idInp = document.getElementById('reg-team-id');
+        const nameInp = document.getElementById('reg-team-name');
+        const leadInp = document.getElementById('reg-leader-name');
+        const colorInp = document.getElementById('reg-team-color');
+        if (idInp) idInp.value = team.id;
+        if (nameInp) nameInp.value = team.name;
+        if (leadInp) leadInp.value = team.leader;
+        if (colorInp && team.color) colorInp.value = team.color;
+      }
+    }
+
+    function selectLeaderTeam(teamId) {
+      selectedLeaderTeamId = teamId;
+      const team = teams.find(t => t.id === teamId);
+      if (team) {
+        syncFormFieldsWithSelectedTeam();
+        renderAll();
+      }
+    }
+
+    /* DEDICATED EDIT TEAM MODAL HANDLERS */
+    function openEditTeamModal(teamId) {
+      const team = teams.find(t => t.id === teamId);
+      if (!team) return;
+      const modal = document.getElementById('edit-team-modal');
+      const idInp = document.getElementById('modal-edit-team-id');
+      const nameInp = document.getElementById('modal-edit-team-name');
+      const leadInp = document.getElementById('modal-edit-leader-name');
+      const colorInp = document.getElementById('modal-edit-team-color');
+      const balDisp = document.getElementById('modal-edit-balance-display');
+
+      if (idInp) idInp.value = team.id;
+      if (nameInp) nameInp.value = team.name;
+      if (leadInp) leadInp.value = team.leader;
+      if (colorInp && team.color) colorInp.value = team.color;
+      if (balDisp) balDisp.textContent = formatDollars(scores[team.id] || 0);
+
+      if (modal) modal.classList.add('open');
+      setTimeout(() => {
+        if (nameInp) {
+          nameInp.focus();
+          nameInp.select();
+        }
+      }, 50);
+    }
+
+    function closeEditTeamModal() {
+      const modal = document.getElementById('edit-team-modal');
+      if (modal) modal.classList.remove('open');
+    }
+
+    function handleModalEditSubmit(e) {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      const idInp = document.getElementById('modal-edit-team-id');
+      const nameInp = document.getElementById('modal-edit-team-name');
+      const leadInp = document.getElementById('modal-edit-leader-name');
+      const colorInp = document.getElementById('modal-edit-team-color');
+
+      const targetId = idInp ? idInp.value : '';
+      const newName = nameInp ? nameInp.value.trim() : '';
+      const newLeader = leadInp ? leadInp.value.trim() : '';
+      const newColor = colorInp ? colorInp.value : '';
+
+      if (!targetId || !newName || !newLeader) {
+        showToast('Please provide both Squadron Name and Commander Name.');
+        return false;
+      }
+
+      const success = applyTeamUpdates(targetId, newName, newLeader, newColor);
+      if (success) {
+        closeEditTeamModal();
+        showToast('Team updated successfully! 🚀');
+      } else {
+        showToast('Error: Target team could not be found.');
+      }
+      return false;
+    }
+
+    /* Legacy or table action edit trigger routes to dedicated modal */
+    function editTeamFromTable(teamId) {
+      openEditTeamModal(teamId);
+    }
+
+    function applyTeamUpdates(teamId, newName, newLeader, newColor) {
+      const existingIndex = teams.findIndex(t => t.id === teamId);
+      if (existingIndex !== -1) {
+        const oldName = teams[existingIndex].name;
+        teams[existingIndex].name = newName;
+        teams[existingIndex].leader = newLeader;
+        if (newColor) teams[existingIndex].color = newColor;
+
+        roundHistory = roundHistory.map(h => {
+          if (h.teamName === oldName) {
+            return { ...h, teamName: newName };
+          }
+          return h;
+        });
+
+        if (selectedLeaderTeamId === teamId) {
+          syncFormFieldsWithSelectedTeam();
+        }
+
+        persistState(true);
+        renderAll();
+        playCashChime();
+        return true;
+      }
+      return false;
+    }
+
+    function handleTeamSubmit(e) {
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      const idInp = document.getElementById('reg-team-id');
+      const nameInp = document.getElementById('reg-team-name');
+      const leadInp = document.getElementById('reg-leader-name');
+      const colorInp = document.getElementById('reg-team-color');
+
+      const targetId = (idInp && idInp.value) ? idInp.value : selectedLeaderTeamId;
+      const newName = nameInp ? nameInp.value.trim() : '';
+      const newLeader = leadInp ? leadInp.value.trim() : '';
+      const newColor = colorInp ? colorInp.value : '';
+
+      if (!newName || !newLeader) {
+        showToast('Please enter both Squadron Name and Commander Name.');
+        return false;
+      }
+
+      const success = applyTeamUpdates(targetId, newName, newLeader, newColor);
+      if (success) {
+        const submitBtn = document.getElementById('reg-submit-btn');
+        if (submitBtn) {
+          const originalText = submitBtn.textContent;
+          submitBtn.textContent = '✓ Updated!';
+          submitBtn.classList.add('btn-reset-success');
+          setTimeout(() => {
+            submitBtn.textContent = originalText;
+            submitBtn.classList.remove('btn-reset-success');
+          }, 1500);
+        }
+        showToast('Team updated successfully! 🚀');
+      } else {
+        showToast('Error: Target squadron not found.');
+      }
+      return false;
+    }
+
+    /* 7. ROLE TOGGLING & MODAL */
+    function switchRole(role) {
+      currentRole = role;
+      document.getElementById('tab-aud').classList.toggle('active', role === 'audience');
+      document.getElementById('tab-sk').classList.toggle('active', role === 'scorekeeper');
+      document.getElementById('tab-lead').classList.toggle('active', role === 'leader');
+
+      const regSec = document.getElementById('registration-section');
+      const skSec = document.getElementById('scorekeeper-section');
+      if (regSec) regSec.style.display = role === 'leader' ? 'block' : 'none';
+      if (skSec) skSec.style.display = role === 'scorekeeper' ? 'block' : 'none';
+
+      if (role === 'leader') {
+        syncFormFieldsWithSelectedTeam();
+      }
+
+      showToast(`Switched to ${role === 'leader' ? 'Team Leader' : role === 'scorekeeper' ? 'Scorekeeper & Admin' : 'Audience'} View`);
+    }
+
+    function toggleCollapse(id) {
+      const el = document.getElementById(id);
+      if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function toggleAdminModal(open) {
+      const modal = document.getElementById('admin-modal');
+      if (modal) {
+        modal.classList.toggle('open', open);
+        if (open) renderAll();
+      }
+    }
+
+    function switchAdminTab(tab) {
+      document.getElementById('modal-tab-rounds').classList.toggle('active', tab === 'rounds');
+      document.getElementById('modal-tab-points').classList.toggle('active', tab === 'points');
+      document.getElementById('admin-pane-rounds').style.display = tab === 'rounds' ? 'flex' : 'none';
+      document.getElementById('admin-pane-points').style.display = tab === 'points' ? 'flex' : 'none';
+    }
+
+    function toggleProjector(on) {
+      document.body.classList.toggle('projector-active', on);
+      if (on && document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(()=>{});
+      } else if (!on && document.fullscreenElement && document.exitFullscreen) {
+        document.exitFullscreen().catch(()=>{});
+      }
+    }
+
+    /* 8. LIVE DEMO AUDIENCE SIMULATION */
+    let demoInterval = null;
+    function runDemoAudienceSimulation() {
+      if (demoInterval) {
+        clearInterval(demoInterval);
+        demoInterval = null;
+        showToast('Demo Simulation Stopped');
+        return;
+      }
+      showToast('⚡ Running Live Demo Simulation across rounds...');
+      playFanfare();
+      let step = 0;
+      demoInterval = setInterval(() => {
+        step++;
+        const randomTeam = teams[Math.floor(Math.random() * teams.length)];
+        const r = getActiveRound();
+        const pts = Math.random() > 0.5 ? r.first : r.second;
+        scores[randomTeam.id] = (scores[randomTeam.id] || 0) + pts;
+        addTeamRoundWin(randomTeam.id, r.id, r.name, pts === r.first ? 1 : 2, pts);
+        logRound(r.id, r.name, randomTeam.name, pts === r.first ? '1st' : '2nd', pts);
+        playCashChime();
+
+        if (step % 2 === 0 && activeRoundId < GAME_ROUNDS.length) {
+          activeRoundId++;
+        }
+
+        persistState();
+        renderAll();
+
+        if (step >= 8) {
+          clearInterval(demoInterval);
+          demoInterval = null;
+          showToast('Live Demo Simulation Completed!');
+          triggerConfetti();
+        }
+      }, 1200);
+    }
+
+    /* 9. CONFETTI EFFECT FOR FINISH STARGATE */
+    function triggerConfetti() {
+      const cvs = document.getElementById('confetti-canvas');
+      const ctx = cvs.getContext('2d');
+      cvs.width = window.innerWidth;
+      cvs.height = window.innerHeight;
+      const pieces = Array.from({ length: 90 }, () => ({
+        x: Math.random() * cvs.width,
+        y: -10,
+        r: Math.random() * 6 + 3,
+        color: ['#10b981', '#f59e0b', '#38bdf8', '#ec4899', '#fff'][Math.floor(Math.random() * 5)],
+        vy: Math.random() * 4 + 2,
+        vx: (Math.random() - 0.5) * 3
+      }));
+
+      let frames = 0;
+      function animate() {
+        ctx.clearRect(0, 0, cvs.width, cvs.height);
+        pieces.forEach(p => {
+          p.y += p.vy;
+          p.x += p.vx;
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        frames++;
+        if (frames < 140) requestAnimationFrame(animate);
+        else ctx.clearRect(0, 0, cvs.width, cvs.height);
+      }
+      animate();
+    }
+
+    /* 10. BACKGROUND COSMIC STARFIELD ANIMATION */
+    const bgCvs = document.getElementById('space-bg-canvas');
+    const bgCtx = bgCvs.getContext('2d');
+    let stars = [];
+    function resizeStars() {
+      bgCvs.width = window.innerWidth;
+      bgCvs.height = window.innerHeight;
+      stars = Array.from({ length: 140 }, () => ({
+        x: Math.random() * bgCvs.width,
+        y: Math.random() * bgCvs.height,
+        r: Math.random() * 1.5 + 0.3,
+        a: Math.random(),
+        da: (Math.random() - 0.5) * 0.02
+      }));
+    }
+    function drawStars() {
+      bgCtx.clearRect(0, 0, bgCvs.width, bgCvs.height);
+      bgCtx.fillStyle = '#34d399';
+      stars.forEach(s => {
+        s.a += s.da;
+        if (s.a <= 0.1 || s.a >= 0.95) s.da = -s.da;
+        bgCtx.globalAlpha = Math.max(0.1, Math.min(1, s.a));
+        bgCtx.beginPath();
+        bgCtx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        bgCtx.fill();
+      });
+      requestAnimationFrame(drawStars);
+    }
+    window.addEventListener('resize', () => {
+      resizeStars();
+      renderAll();
+    });
+
+    /* BOOTSTRAP INITIALIZATION */
+    initAppState();
+    resizeStars();
+    drawStars();
+    renderAll();
+  </script>
+</body></html>
