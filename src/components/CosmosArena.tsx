@@ -68,7 +68,7 @@ export function CosmosArena({
       <div className="relative z-10 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="bg-gradient-to-r from-white via-emerald-200 to-amber-400 bg-clip-text text-xl font-extrabold tracking-tight text-transparent">
-            Open Cosmos Flight Sector
+            Race to the Top - Finance Edition
           </h2>
           <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs">
             <span className="font-bold text-emerald-400">
